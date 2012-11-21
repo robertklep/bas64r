@@ -47,14 +47,10 @@
         pointer-events: none;
       }
 
-      #droparea       .drag-it-you-slag         { display: inline }
-      #droparea       .drop-it-you-slag         { display: none }
-      #droparea       .drop-it-you-slag .plural { display: none }
-
+      #droparea       .drag-it-you-slag { display: inline }
+      #droparea       .drop-it-you-slag { display: none }
       #droparea.hover .drag-it-you-slag { display: none }
       #droparea.hover .drop-it-you-slag { display: inline }
-
-      #droparea.drop-multiple .drop-it-you-slag .plural { display: inline }
 
       #results {
         display   : none;
@@ -118,7 +114,7 @@
   <body>
     <div id="droparea">
       <span class="drag-it-you-slag">drag your file(s) to here</span>
-      <span class="drop-it-you-slag">drop your file<span class="plural">s</span> here</span>
+      <span class="drop-it-you-slag">drop your file(s) here</span>
     </div>
     <div id="results">
       <dl id="results-list"></dl>
@@ -133,19 +129,9 @@
       var droparea = document.getElementById('droparea')
 
       // set/remove classes on droparea on drag events
-      droparea.addEventListener('dragenter',  function(ev) { 
-        droparea.classList.add('hover');
-        if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length > 1)
-          droparea.classList.add('drop-multiple');
-      });
-
-      var cleanup = function(ev) { 
-        droparea.classList.remove('hover');
-        droparea.classList.remove('drop-multiple');
-      };
-
-      droparea.addEventListener('dragleave', cleanup);
-      droparea.addEventListener('dragend',   cleanup);
+      droparea.addEventListener('dragenter',  function(ev) { droparea.classList.add('hover') });
+      droparea.addEventListener('dragleave',  function(ev) { droparea.classList.remove('hover') });
+      droparea.addEventListener('dragend',    function(ev) { droparea.classList.remove('hover') });
       
       // prevent default drop action on body
       document.body.addEventListener('drop', function(ev) {
@@ -154,22 +140,23 @@
     
       // handle drop events on drop area
       droparea.addEventListener('drop', function(ev) {
-        cleanup();
+        // remove hover state from droparea
+        droparea.classList.remove('hover');
 
         // prevent default action
         ev.preventDefault();
 
-        // get data transfer
-        var dt = ev.dataTransfer;
+        // get list of dropped files and convert to array
+        var filelist  = [];
+        var files     = ev.dataTransfer.files;
+        for (var i = 0; i < files.length; i++)
+          filelist.push(files.item(i));
 
         // get reference to results list
-        var list = document.getElementById('results-list');
+        var resultslist = document.getElementById('results-list');
 
         // process each file
-        for (var i = 0; i < dt.files.length; i++)
-        {
-          var file  = dt.files.item(i);
-
+        filelist.forEach(function(file) {
           // instantiate file reader
           var reader = new FileReader();
 
@@ -180,12 +167,13 @@
             // create result
             var dt = document.createElement('dt');
             dt.innerText = file.name;
-            list.appendChild(dt);
+            resultslist.appendChild(dt);
 
             var dd = document.createElement('dd');
             dd.style.backgroundImage = 'url(' + data + ')';
-            list.appendChild(dd);
+            resultslist.appendChild(dd);
 
+            // add an extra img to dd so right-click works
             var img = document.createElement('img');
             img.src = data;
             dd.appendChild(img);
@@ -196,7 +184,7 @@
 
           // read file
           reader.readAsDataURL(file);
-        }
+        });
 
         // done
         return false;
