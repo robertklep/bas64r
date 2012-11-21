@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Quattrocento+Sans' rel='stylesheet' type='text/css'>
+    <style>
+      * { box-sizing : border-box }
+
+      html, body {
+        margin                : 0;
+        padding               : 0;
+        width                 : 100%;
+        height                : 100%;
+        background            : url(bokeh-1440.jpg) no-repeat;
+        background-size       : cover;
+        background-attachment : fixed;
+        position              : relative;
+        font-family           : 'Quattrocento Sans', sans-serif;
+      }
+
+      #droparea, #results {
+        position: absolute;
+        width   : 300px;
+        left    : 50%;
+        top     : 25%;
+        border-radius: 40px;
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 50px #840;
+        border  : 3px solid black;
+      }
+
+      #droparea {
+        height  : 200px;
+        margin  : -100px 0 0 -150px;
+        line-height: 200px;
+        text-align: center;
+        -webkit-transition: background .2s ease-in-out;
+      }
+
+      #droparea.hover {
+        border    : 3px solid #ccc;
+        background: rgba(0, 0, 0, 0.9);
+      }
+
+      #droparea > span  { 
+        color         : #ccc;
+        font-size     : 120%;
+        pointer-events: none;
+      }
+
+      #droparea       .drag-it-you-slag         { display: inline }
+      #droparea       .drop-it-you-slag         { display: none }
+      #droparea       .drop-it-you-slag .plural { display: none }
+
+      #droparea.hover .drag-it-you-slag { display: none }
+      #droparea.hover .drop-it-you-slag { display: inline }
+
+      #droparea.drop-multiple .drop-it-you-slag .plural { display: inline }
+
+      #results {
+        display   : none;
+        position  : absolute;
+        padding   : 1em 0.5em;
+        margin    : 120px 0 0 -150px;
+        color     : white;
+      }
+
+      #results span {
+        display   : block;
+        font-size : 70%;
+        color     : #888;
+        text-align: center;
+      }
+
+      #results dt, #results dd {
+        margin    : 0.5em 0;
+        padding   : 0;
+        width     : 49%;
+        display   : inline-block;
+        vertical-align: middle;
+      }
+
+      #results dt {
+        font-size     : 80%;
+        overflow      : hidden;
+        text-overflow : ellipsis;
+      }
+
+      #results dd {
+        height            : 50px;
+        background-repeat : no-repeat;
+        background-size   : cover;
+        border-radius     : 10px;
+        box-shadow        : 0px 0px 5px #888;
+      }
+
+      #results dd:hover {
+        cursor  : pointer;
+      }
+
+      #results dd img     { opacity: 0; width: 100%; height: 100% }
+
+      #attribution {
+        position  : fixed;
+        opacity   : 0.5;
+        padding   : 0.5em;
+        bottom    : 0;
+        color     : #888;
+        font-size : 80%;
+      }
+
+      #attribution a {
+        text-decoration : none;
+        color           : #88f;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="droparea">
+      <span class="drag-it-you-slag">drag your file(s) to here</span>
+      <span class="drop-it-you-slag">drop your file<span class="plural">s</span> here</span>
+    </div>
+    <div id="results">
+      <dl id="results-list"></dl>
+      <span>to copy data-url to clipboard, right-click on image</span>
+    </div>
+    <div id="attribution">
+      background by <a target="_blank" href="http://www.flickr.com/photos/anieto2k/">anieto2k</a>
+    </div>
+  </body>
+  <script>
+    (function() {
+      var droparea = document.getElementById('droparea')
+
+      // set/remove classes on droparea on drag events
+      droparea.addEventListener('dragenter',  function(ev) { 
+        droparea.classList.add('hover');
+        if (ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files.length > 1)
+          droparea.classList.add('drop-multiple');
+      });
+
+      var cleanup = function(ev) { 
+        droparea.classList.remove('hover');
+        droparea.classList.remove('drop-multiple');
+      };
+
+      droparea.addEventListener('dragleave', cleanup);
+      droparea.addEventListener('dragend',   cleanup);
+      
+      // prevent default drop action on body
+      document.body.addEventListener('drop', function(ev) {
+        ev.preventDefault();
+      });
+    
+      // handle drop events on drop area
+      droparea.addEventListener('drop', function(ev) {
+        cleanup();
+
+        // prevent default action
+        ev.preventDefault();
+
+        // get data transfer
+        var dt = ev.dataTransfer;
+
+        // get reference to results list
+        var list = document.getElementById('results-list');
+
+        // process each file
+        for (var i = 0; i < dt.files.length; i++)
+        {
+          var file  = dt.files.item(i);
+
+          // instantiate file reader
+          var reader = new FileReader();
+
+          // when file has loaded, add entry to results list
+          reader.onloadend = function(ev) {
+            var data = ev.target.result;
+
+            // create result
+            var dt = document.createElement('dt');
+            dt.innerText = file.name;
+            list.appendChild(dt);
+
+            var dd = document.createElement('dd');
+            dd.style.backgroundImage = 'url(' + data + ')';
+            list.appendChild(dd);
+
+            var img = document.createElement('img');
+            img.src = data;
+            dd.appendChild(img);
+
+            // show results list
+            document.getElementById('results').style.display = 'block';
+          };
+
+          // read file
+          reader.readAsDataURL(file);
+        }
+
+        // done
+        return false;
+      }, false);
+    })();
+  </script>
+</html>
