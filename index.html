@@ -132,6 +132,9 @@
       droparea.addEventListener('dragenter',  function(ev) { droparea.classList.add('hover') });
       droparea.addEventListener('dragleave',  function(ev) { droparea.classList.remove('hover') });
       droparea.addEventListener('dragend',    function(ev) { droparea.classList.remove('hover') });
+
+      // meh
+      droparea.addEventListener('dragover',   function(ev) { ev.preventDefault() });
       
       // prevent default drop action on body
       document.body.addEventListener('drop', function(ev) {
